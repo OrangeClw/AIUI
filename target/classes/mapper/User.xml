@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.iflytek.aiui.mapper.UserMapper">
+	<resultMap id="userMap" type="User">
+	  	<id property="id" column="id" />
+		<result property="username" column="username"/>
+	  	<result property="password" column="password"/>
+		<result property="nickname" column="nickname"/>
+		<result property="sex" column="sex"/>
+		<result property="age" column="age"/>
+	</resultMap>
+		
+	<select id="list"  resultMap="userMap">
+	    select id,username, password, nickname, sex, age from user
+	</select>
+
+	<select id="readusernamenum" resultMap="userMap">
+		select usernamenum from usernamenum
+	</select>
+
+	<select id="updateusernamenum" resultMap="userMap">
+		update usernamenum set usernamenum = #{usernamenum}
+	</select>
+	
+	<select id="query" parameterType="User" resultMap="userMap">
+	    select id,username, password, nickname, sex, age from user
+	    <where>
+			<if test="id!=null">
+				id = #{id}
+			</if>
+			<if test="username!=null">
+				and username = #{username}
+			</if>
+			<if test="password!=null">
+				and password = #{password}
+			</if>
+		</where>
+	</select>
+
+	<select id="voiceSearch" resultMap="userMap">
+		select id,username, password, nickname, sex, age from user
+		<where>
+			<if test="value != null">
+				username=#{value} or nickname=#{value}
+			</if>
+		</where>
+	</select>
+
+	<select id="queryByUsername" parameterType="User" resultMap="userMap">
+	    select id,username, password, nickname, sex, age from user where username = #{username}
+	</select>
+
+	<select id="queryByNicknameAndSex" parameterType="User" resultMap="userMap">
+	    select id,username, password, nickname, sex, age from user where nickname = #{nickname}
+	     and sex = #{sex}
+	</select>
+
+	<insert id="insert">
+		insert into user(username, password, nickname, sex, age)
+		values(#{username}, #{password}, #{nickname}, #{sex}, #{age})
+	</insert>
+
+	<update id="update">
+		update user set password=#{password}, nickname=#{nickname} where id = #{id}
+	</update>
+
+	<update id="updateUser">
+		update user
+		<set>
+			<if test="password != null">password=#{password},</if>
+			<if test="nickname != null">nickname=#{nickname},</if>
+		</set>
+		 where id = #{id}
+	</update>
+
+	<delete id="delete">
+		delete from user where id = #{id}
+	</delete>
+
+	<select id="conditionList"  resultMap="userMap">
+	    select id,username, password, nickname, sex, age from user
+	    where
+	    <if test="nickname!=null">
+			nickname = #{nickname}
+		</if>
+		<if test="sex != null">
+		 	and sex = #{sex}
+		</if>
+		<if test="username != null">
+			and username = #{username}
+		</if>
+	</select>
+
+	<select id="conditionChooseList"  resultMap="userMap">
+		select id,username, password, nickname, sex, age from user
+		where
+		<choose>
+			<when test="id != null">
+				id = #{id}
+			</when>
+			<when test="username != null">
+				username = #{username}
+			</when>
+			<otherwise>
+				1=1
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="conditionWhereList"  resultMap="userMap">
+		select id,username, password, nickname, sex, age from user
+		<where>
+			<if test="nickname!=null">
+				nickname = #{nickname}
+			</if>
+			<if test="sex != null">
+				and sex = #{sex}
+			</if>
+			<if test="username != null">
+				and username = #{username}
+			</if>
+		</where>
+	</select>
+
+	<select id="conditionForeachList"  resultMap="userMap">
+		select id,username, password, nickname, sex, age from user
+		<where>
+			id in 
+			<foreach collection="list" item="item" index="index"
+					 open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</where>
+	</select>
+</mapper>

@@ -1,7 +1,7 @@
 package com.iflytek.aiui.controller;
 
 import com.iflytek.aiui.iat.WebIATWS;
-import com.iflytek.aiui.test.WebITS;
+import com.iflytek.aiui.its.WebITS;
 import com.iflytek.aiui.utils.DataResult;
 import com.iflytek.aiui.utils.UuidUtils;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -1,7 +1,6 @@
-package com.iflytek.aiui.test;
+package com.iflytek.aiui.its;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;

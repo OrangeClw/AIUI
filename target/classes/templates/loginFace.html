@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>登录页面</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/toastr.css">
+    <link rel="stylesheet" href="/css/login.css">
+
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="/js/toastr.min.js" ></script>
+    <script src="/js/core.util.js"></script>
+</head>
+<body>
+<div id="app">
+    <section class="el-container">
+        <main class="el-main">
+            <div class="container">
+                <div  class="ib container-left">
+                    <img  src="/images/banner-login-signup.png" alt="login-register.png">
+                </div>
+                <div class="ib container-right" style="box-sizing: border-box;padding-top:40px;padding-bottom: 40px;">
+                    <div  class="flex" style="margin-bottom: 96px;">
+                        <a href="/" target="_self" class="container-right-logo fx1">
+                            <img  alt="iFlyOS" src="/images/iflytek.svg" class="vt-middle">
+                        </a>
+                        <a href="/login" class="fx1 text-black fs18 txt-al-r" style="line-height: 32px;">
+                            账号密码登录
+                        </a>
+                    </div>
+                    <p  class="fs25 text-black ff-medium mgb12">登录</p>
+                    <p  class="fs14 text-grey mgb40">讯飞云平台及AIUI用户可直接登录</p>
+                    <div class="img-thumbnail" style="width: 100%;">
+                        <video id="video" controls="controls" style="width:100%;"></video>
+                        <div id="pic_canvas" style="display: none;width:100%;">
+                            <canvas id="canvas" style="width:100%;"></canvas>
+                        </div>
+                    </div>
+                    <div class="mgb24">
+                        <button type="button" id="login" class="btn btn-primary el-button login-btn el-button--primary" tabindex="3">
+                                <span>
+                                    人脸
+                                </span>
+                        </button>
+                    </div>
+                    <p>
+                        没有人脸账号，<a href="/registerface" class="">添加人脸数据</a>
+                    </p>
+                </div>
+            </div>
+        </main>
+    </section>
+</div>
+</body>
+</html>
+
+<script>
+    $(function () {
+        var video = document.getElementById("video");
+        var canvas = document.getElementById("canvas");
+        var context = canvas.getContext("2d");
+        var mediaStreamTrack=null;
+        var img
+
+        // 开启用户电脑上面的摄像头，获取影像放到video去运行
+        Facelogin();
+
+        var id = setInterval(function(){
+            getPhoto();
+            $("#pic_canvas").show();
+        }, 2000);
+
+        function success(stream){
+            //兼容webkit核心浏览器
+            // var CompatibleURL = window.URL || window.webkitURL;
+            //将视频流转化为video的源
+            mediaStreamTrack=stream;
+            try {
+                // video.src = CompatibleURL.createObjectURL(stream);
+                video.srcObject=stream;
+            }catch (e) {
+                console.log("访问用户媒体设备失败：",error.name,error.message);
+            }
+
+            video.play();//播放视频
+
+            //将视频绘制到canvas上
+        }
+
+        //错误回调函数
+        function error(error) {
+            console.log('访问用户媒体失败：',error.name,error.message);
+            toastr.error('访问用户媒体失败');
+        }
+
+        function getUserMediaToPhoto(constraints,success,error) {
+            if(navigator.mediaDevices.getUserMedia){
+                //最新标准API
+                navigator.mediaDevices.getUserMedia(constraints).then(success).catch(error);
+            }else if (navigator.webkitGetUserMedia) {
+                //webkit核心浏览器
+                navigator.webkitGetUserMedia(constraints,success,error);
+            }else if(navigator.mozGetUserMedia){
+                //firefox浏览器
+                navigator.mozGetUserMedia(constraints,success,error);
+            }else if(navigator.getUserMedia){
+                //旧版API
+                navigator.getUserMedia(constraints,success,error);
+            }
+        }
+
+        function getFace() {
+            context.drawImage(video,0,0,$("#video").width(),$("#video").height());
+            var imgData=canvas.toDataURL('image/png')
+            //获取完整的base64编码
+            var base64Data = imgData.substr(22);
+            return base64Data;
+        }
+
+        function openUserMedia() {
+            if(navigator.mediaDevices.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.getUserMedia){
+                getUserMediaToPhoto({video:{width:$("#video").width(),height:$("#video").height(),facingMode: "user"}},success,error);
+            }else{
+                toastr.error('你的浏览器不支持访问用户媒体设备');
+            }
+        }
+        function  offUserMedia() {
+            if(mediaStreamTrack!=null)
+                mediaStreamTrack.getTracks()[0].stop();
+        }
+
+
+        function Facelogin() {
+            openUserMedia()
+        }
+
+        function getPhoto(){
+            img = getFace();
+        }
+
+        function upload(){
+            var imgData=canvas.toDataURL('image/png')
+            //获取完整的base64编码
+            var img = imgData.substr(22);
+            var data = {
+                "imgpath":img,
+                "imgType":"BASE64"
+            };
+
+            $.post("/faceLogin",data,function(m){
+                console.log(JSON.stringify(m));
+                if(m.code==0){
+                    //window.location.href="<%=request.getContextPath()%>/staff/findAllModel.action"
+                    toastr.success(m.msg)
+                    setTimeout(function(){
+                        window.location.href="/index";
+                    }, 3000);
+                }else{
+                    toastr.error(m.msg);
+                }
+            },"json")
+        }
+
+        $("#login").click(function(){
+            // 将视频隐藏
+            $("#video").hide();
+            // 停止视频
+            offUserMedia();
+            // 将图片自动截取功能去掉
+            clearInterval(id);
+            // 将获取到的最后的图片 上传到后台
+            upload();
+        });
+    })
+</script>
