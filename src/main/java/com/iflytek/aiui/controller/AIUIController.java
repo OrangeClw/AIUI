@@ -2,6 +2,7 @@ package com.iflytek.aiui.controller;
 
 import com.iflytek.aiui.iat.WebIATWS;
 import com.iflytek.aiui.its.WebITS;
+import com.iflytek.aiui.tts.WebTTSWS;
 import com.iflytek.aiui.utils.DataResult;
 import com.iflytek.aiui.utils.UuidUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
 import java.io.File;
+import java.io.IOException;
 
 
 @RestController
@@ -95,8 +97,36 @@ public class AIUIController {
             String firstText = WebITS.itrans(text, from, "cn");
             return DataResult.success(WebITS.itrans(firstText, "cn", to));
         }
-
+    }
+    @RequestMapping("/synthetize")
+    public DataResult<String> synthetize(String text, String vcn, Integer pitch, Integer speed,HttpSession session){
+        if(vcn == null){
+            vcn = "xiaoyan";
+        }
+        if (pitch == null){
+            pitch = 50;
+        }
+        if (speed == null){
+            speed = 50;
+        }
+        DataResult<String> dataResult = DataResult.success();
+        WebTTSWS ws = new WebTTSWS();
+        try {
+            dataResult = ws.ttsText2Voice(text, vcn, pitch, speed);
+            session.setAttribute("tts_message", dataResult);
+            return dataResult;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return dataResult;
     }
 
 
+    @RequestMapping("/tts")
+    public DataResult<String> tts(HttpSession session) {
+        DataResult<String> response = (DataResult<String>)session.getAttribute("tts_message");
+        return response;
+    }
 }

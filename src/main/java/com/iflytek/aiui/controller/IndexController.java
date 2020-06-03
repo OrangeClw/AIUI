@@ -75,4 +75,9 @@ public class IndexController {
     public String preVoice2translation() {
         return "main/voice2translation";
     }
+
+    @GetMapping("/aiui/text2voice")
+    public String preText2voice() {
+        return "main/text2voice";
+    }
 }
